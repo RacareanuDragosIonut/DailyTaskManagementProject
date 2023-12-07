@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "260597098666",
+    "project_id": "dailytaskmanagement-a3cfa",
+    "storage_bucket": "dailytaskmanagement-a3cfa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260597098666:android:40b7a54f637dfc994a88d3",
+        "android_client_info": {
+          "package_name": "com.example.dailytaskmanagement"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArD6FAABRtFeS059t5WPb0Atq75oJ9V-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
