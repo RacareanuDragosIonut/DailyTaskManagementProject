@@ -1,5 +1,6 @@
 package com.example.dailytaskmanagement.presentation.signup_screen
 
+
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -101,7 +103,8 @@ fun SignUpScreen(viewModel: SignUpViewModel = hiltViewModel(),navController: Nav
             singleLine = true,
             placeholder = {
                 Text(text="Password")
-            }
+            },
+            visualTransformation = PasswordVisualTransformation()
         )
         Button(onClick={
             scope.launch{

@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -102,7 +103,8 @@ fun SignInScreen(viewModel: SignInViewModel = hiltViewModel(),navController: Nav
             singleLine = true,
             placeholder = {
                 Text(text="Password")
-            }
+            },
+            visualTransformation = PasswordVisualTransformation()
         )
         Button(onClick={
             scope.launch{
