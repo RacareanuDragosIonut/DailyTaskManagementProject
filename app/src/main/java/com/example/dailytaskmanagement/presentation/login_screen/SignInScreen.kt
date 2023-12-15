@@ -3,7 +3,6 @@ package com.example.dailytaskmanagement.presentation.login_screen
 import android.content.Intent
 
 
-
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -36,13 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-
 import com.example.dailytaskmanagement.navigation.Screens
 import com.example.dailytaskmanagement.presentation.HomeActivity
 import kotlinx.coroutines.launch
@@ -138,7 +134,6 @@ fun SignInScreen(viewModel: SignInViewModel = hiltViewModel(),navController: Nav
                 if(state.value?.isSuccess?.isNotEmpty()==true){
                     val success = state.value?.isSuccess
                     Toast.makeText(context, "${success}", Toast.LENGTH_LONG).show()
-
 
                     val intent = Intent(context, HomeActivity::class.java)
                     intent.putExtra("username_key", email)

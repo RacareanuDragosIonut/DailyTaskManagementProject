@@ -1,5 +1,5 @@
-
 package com.example.dailytaskmanagement.presentation
+
 import FirebaseUtils
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,12 +26,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
 
 class TaskCategoryPageActivity : ComponentActivity() {
     companion object {
         const val ADD_TASK_REQUEST_CODE = 123
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -45,25 +47,50 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     val username = intent.getStringExtra("username")
 
 
+
                     when (taskType) {
                         "shared tasks with me" -> {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
 
-                            FirebaseUtils().getTasksBySharedUsers(username.orEmpty()) { tasks ->
-                                tasksState = tasks
+
+                            val refreshTasks: () -> Unit = {
+                                FirebaseUtils().getTasksBySharedUsers(username.orEmpty()) { tasks ->
+                                    tasksState = tasks
+                                }
                             }
 
-                            TaskCategoryPageContent(title = "Shared Tasks with me", tasksState, username, taskType)
+
+                            refreshTasks.invoke()
+
+                            TaskCategoryPageContent(
+                                title = "Shared Tasks with me",
+                                tasksState,
+                                username,
+                                taskType,
+                                refreshTasks
+                            )
                         }
 
                         "work", "gym", "reading", "self learning", "other tasks" -> {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
 
-                            FirebaseUtils().getTasksByTypeAndOwner(taskType.orEmpty(), username.orEmpty()) { tasks ->
-                                tasksState = tasks
+
+                            val refreshTasks: () -> Unit = {
+                                FirebaseUtils().getTasksByTypeAndOwner(taskType.orEmpty(), username.orEmpty()) { tasks ->
+                                    tasksState = tasks
+                                }
                             }
 
-                            TaskCategoryPageContent(title = "Your $taskType Tasks", tasksState, username, taskType)
+
+                            refreshTasks.invoke()
+
+                            TaskCategoryPageContent(
+                                title = "Your $taskType Tasks",
+                                tasksState,
+                                username,
+                                taskType,
+                                refreshTasks
+                            )
                         }
 
                     }
@@ -74,7 +101,13 @@ class TaskCategoryPageActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TaskCategoryPageContent(title: String, tasks: List<Task>, username: String?, taskType: String?) {
+    fun TaskCategoryPageContent(
+        title: String,
+        tasks: List<Task>,
+        username: String?,
+        taskType: String?,
+        refreshTasks: () -> Unit
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -94,22 +127,22 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 },
                 actions = {
                     if (taskType != "shared tasks with me") {
-                    IconButton(
-                        onClick = {
-                            val intent = Intent(
-                                this@TaskCategoryPageActivity,
-                                AddTaskFormActivity::class.java
-                            )
-                            intent.putExtra("username", username)
-                            intent.putExtra("taskType", taskType)
-                            startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
+                        IconButton(
+                            onClick = {
+                                val intent = Intent(
+                                    this@TaskCategoryPageActivity,
+                                    AddTaskFormActivity::class.java
+                                )
+                                intent.putExtra("username", username)
+                                intent.putExtra("taskType", taskType)
+                                startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
+                            }
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task")
                         }
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task")
                     }
-                }
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow) // Set the background color to blue
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
             )
 
             LazyColumn(

@@ -56,6 +56,8 @@ class FirebaseUtils {
     ) {
 
         val taskId = tasksReference.push().key
+
+
         val taskData = hashMapOf(
             "taskId" to taskId,
             "owner" to owner,
