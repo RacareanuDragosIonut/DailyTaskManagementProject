@@ -3,7 +3,6 @@ package com.example.dailytaskmanagement.presentation.login_screen
 import android.content.Intent
 
 
-
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -138,6 +137,8 @@ fun SignInScreen(viewModel: SignInViewModel = hiltViewModel(),navController: Nav
                 if(state.value?.isSuccess?.isNotEmpty()==true){
                     val success = state.value?.isSuccess
                     Toast.makeText(context, "${success}", Toast.LENGTH_LONG).show()
+
+
                     val intent = Intent(context, HomeActivity::class.java)
                     intent.putExtra("username_key", email)
                     context.startActivity(intent)

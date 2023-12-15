@@ -1,6 +1,7 @@
 package com.example.dailytaskmanagement.presentation
 
 import FirebaseUtils
+import Task
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
@@ -12,27 +13,17 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 
-
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.ui.unit.dp
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
+import java.util.*
 
-import java.util.Calendar
-import java.util.Date
-
-
-class AddTaskFormActivity : ComponentActivity() {
+class EditTaskFormActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,61 +33,76 @@ class AddTaskFormActivity : ComponentActivity() {
                 Surface(
                     color = MaterialTheme.colorScheme.background
                 ) {
+
+                    val task = intent.getParcelableExtra<Task>("task")
                     val username = intent.getStringExtra("username")
                     val taskType = intent.getStringExtra("taskType")
 
-                    AddTaskForm(onSubmit = { taskName, dueDate, priority, description ->
 
-                        addTaskToFirebase(username, taskName, dueDate, priority, description, taskType)
-                        setResult(Activity.RESULT_OK)
+                    EditTaskForm(
+                        task = task,
+                        username = username,
+                        taskType = taskType,
+                        onUpdate = { task ->
 
-                        finish()
-                    }, onClose = {
+                            updateTaskInFirebase(task)
+                            setResult(Activity.RESULT_OK)
 
-                        val intent = Intent(this@AddTaskFormActivity, TaskCategoryPageActivity::class.java)
-                        intent.putExtra("username", username)
-                        intent.putExtra("taskType", taskType)
-                        startActivity(intent)
-                        finish()
-                    })
+                            finish()
+                        },
+                        onClose = {
+
+                            val intent = Intent(
+                                this@EditTaskFormActivity,
+                                TaskCategoryPageActivity::class.java
+                            )
+                            intent.putExtra("username", username)
+                            intent.putExtra("taskType", taskType)
+                            startActivity(intent)
+                            finish()
+                        }
+                    )
                 }
             }
         }
+    }
+
+
+    private fun updateTaskInFirebase(task: Task?) {
+
+        FirebaseUtils().updateTask(task)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () -> Unit) {
-    var taskName by remember { mutableStateOf("") }
-    var dueDate by remember { mutableStateOf("") }
-    var priority by remember { mutableStateOf("Low") }
-    var description by remember { mutableStateOf("") }
+fun EditTaskForm(
+    task: Task?,
+    username: String?,
+    taskType: String?,
+    onUpdate: (Task) -> Unit,
+    onClose: () -> Unit
+) {
+
     val priorityOptions = listOf("Low", "Medium", "High")
+
+    var taskName by remember { mutableStateOf(task?.name.orEmpty()) }
+    var dueDate by remember { mutableStateOf(task?.dueDate.orEmpty()) }
+    var priority by remember {
+        mutableStateOf(
+            task?.priority
+                ?.takeIf { priority -> priorityOptions.contains(priority) }
+                ?: priorityOptions.first()
+        )
+    }
+    var description by remember { mutableStateOf(task?.description.orEmpty()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Gray)
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-
-            IconButton(
-                onClick = {
-                    onClose()
-                },
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
-            }
-        }
-
 
         OutlinedTextField(
             value = taskName,
@@ -109,14 +115,13 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
         )
 
 
-        showDatePicker(
-            context=LocalContext.current,
+        showDatePickerEdit(
+            context = LocalContext.current,
             selectedDate = dueDate,
             onDateSelected = { selectedDate ->
                 dueDate = selectedDate
             }
         )
-
 
 
         Box(
@@ -126,7 +131,13 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
                 .background(Color.White)
         ) {
             var expanded by remember { mutableStateOf(false) }
-            var selectedIndex by remember { mutableStateOf(0) }
+            var selectedIndex by remember {
+                mutableStateOf(
+                    priorityOptions.indexOf(priority)
+                        .takeIf { it != -1 }
+                        ?: 0
+                )
+            }
 
             Text(
                 text = "Priority: ${priorityOptions[selectedIndex]}",
@@ -141,18 +152,18 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
                 modifier = Modifier.fillMaxWidth()
             ) {
                 priorityOptions.forEachIndexed { index, priorityOption ->
-                    DropdownMenuItem(text={Text(text = priorityOption)},onClick = {
-                        selectedIndex = index
-                        priority = priorityOption
-                        expanded = false
-                  })
-
-
-
+                    DropdownMenuItem(
+                        text = { Text(text = priorityOption) },
+                        onClick = {
+                            selectedIndex = index
+                            priority = priorityOption
+                            expanded = false
+                        }
+                    )
                 }
-
             }
         }
+
 
         OutlinedTextField(
             value = description,
@@ -177,21 +188,45 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
             Button(
                 onClick = {
 
-                    onSubmit(taskName, dueDate, priority, description)
+                    val updatedTask = Task(
+                        taskId = task?.taskId,
+                        name = taskName,
+                        dueDate = dueDate,
+                        priority = priority,
+                        description = description,
+                        owner = username.orEmpty(),
+                        type = taskType.orEmpty(),
+
+                    )
+
+                    onUpdate(updatedTask)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Send")
-                Text("Submit")
+                Text("Update")
+            }
+
+
+            Button(
+                onClick = {
+
+                    onClose()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                Text("Close")
             }
         }
     }
 }
 
+
 @Composable
-fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (String) -> Unit) {
+fun showDatePickerEdit(context: Context, selectedDate: String, onDateSelected: (String) -> Unit) {
     val year: Int
     val month: Int
     val day: Int
@@ -217,24 +252,5 @@ fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (Stri
         datePickerDialog.show()
     }) {
         Text(text = "Open Date Picker")
-    }
-}
-
-
-
-private fun addTaskToFirebase(username: String?, taskName: String, dueDate: String, priority: String, description: String, type: String?) {
-    if (username != null) {
-
-        FirebaseUtils().addTask(
-            owner = username,
-            sharedUsers = emptyList(),
-            status = "not started",
-            name = taskName,
-            dueDate = dueDate,
-            priority = priority,
-            description = description,
-            type = type
-
-        )
     }
 }

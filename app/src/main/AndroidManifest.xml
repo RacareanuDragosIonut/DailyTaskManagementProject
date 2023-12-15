@@ -16,6 +16,9 @@
         android:theme="@style/Theme.DailyTaskManagement"
         tools:targetApi="31">
         <activity
+            android:name=".presentation.EditTaskFormActivity"
+            android:exported="false" />
+        <activity
             android:name=".presentation.AddTaskFormActivity"
             android:exported="false" />
         <activity

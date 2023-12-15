@@ -14,6 +14,7 @@ import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -106,6 +107,9 @@ class TaskCategoryPageActivity : ComponentActivity() {
         username: String?,
         taskType: String?
     ) {
+
+        var selectedTask by remember { mutableStateOf<Task?>(null) }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,18 +147,28 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
             )
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(tasks) { task ->
-                    TaskItem(task = task)
+
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(tasks) { task ->
+                        TaskItem(task = task) {
+
+
+                        }
+                    }
                 }
-            }
+
         }
     }
 
+
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TaskItem(task: Task) {
+    fun TaskItem(task: Task, onClick: () -> Unit) {
+        var expanded by remember { mutableStateOf(false) }
+
         ElevatedCard(
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 6.dp
@@ -165,7 +179,11 @@ class TaskCategoryPageActivity : ComponentActivity() {
             colors = CardDefaults.cardColors(
                 containerColor = Color.DarkGray,
                 contentColor = Color.White
-            )
+            ),
+            onClick = {
+                expanded = !expanded
+                onClick()
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -173,16 +191,56 @@ class TaskCategoryPageActivity : ComponentActivity() {
             ) {
                 Text(text = "Task Name: ${task.name}", fontWeight = FontWeight.Bold)
                 Text(text = "Priority: ${task.priority}")
+
+                if (expanded) {
+                    Text(text = "Due Date: ${task.dueDate}")
+                    Text(text = "Status: ${task.status}")
+                    Text(text = "Description: ${task.description}")
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        Button(onClick = {
+                            val intent = Intent(
+                            this@TaskCategoryPageActivity,
+                            EditTaskFormActivity::class.java
+                        )
+                            intent.putExtra("task", task)
+                            intent.putExtra("username", task.owner)
+                            intent.putExtra("taskType", task.type)
+                            startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
+                        }) {
+                            Text(text = "Edit")
+                        }
+                        Button(onClick = {  }) {
+                            Text(text = "Delete")
+                        }
+                        Button(onClick = {  }) {
+                            Text(text = "Share")
+                        }
+
+
+                        Button(onClick = { expanded = false }) {
+                            Text(text = "Close")
+                        }
+                    }
+                }
             }
         }
     }
+
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == ADD_TASK_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 
-            Log.d("TaskCategoryPage", "Task added successfully")
+            Log.d("TaskCategoryPage", "Task added/updated successfully")
 
 
             refreshTasks.invoke()

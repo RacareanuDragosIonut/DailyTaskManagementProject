@@ -1,3 +1,4 @@
+
 import com.google.firebase.database.*
 
 class FirebaseUtils {
@@ -81,6 +82,38 @@ class FirebaseUtils {
 
                 println("Error adding task: $e")
             }
+    }
+
+    fun updateTask(updatedTask: Task?) {
+
+        val tasksReference = database.getReference("tasks")
+
+
+        val taskId = updatedTask?.taskId
+        if (taskId != null) {
+
+            val updatedTaskData = mapOf(
+                "name" to updatedTask.name,
+                "dueDate" to updatedTask.dueDate,
+                "priority" to updatedTask.priority,
+                "description" to updatedTask.description,
+
+            )
+
+
+            tasksReference.child(taskId).updateChildren(updatedTaskData)
+                .addOnSuccessListener {
+
+                    println("Task updated successfully")
+                }
+                .addOnFailureListener { e ->
+
+                    println("Error updating task: $e")
+                }
+        } else {
+
+            println("Invalid task ID for update")
+        }
     }
 
 
