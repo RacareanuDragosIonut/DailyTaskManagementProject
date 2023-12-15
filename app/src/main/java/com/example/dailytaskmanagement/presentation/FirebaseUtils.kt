@@ -18,7 +18,7 @@ class FirebaseUtils {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // Handle error
+
                 }
             })
     }
@@ -42,6 +42,43 @@ class FirebaseUtils {
 
                 }
             })
+    }
+
+    fun addTask(
+        owner: String,
+        sharedUsers: List<String>,
+        status: String,
+        type: String?,
+        name: String,
+        dueDate: String,
+        priority: String,
+        description: String
+    ) {
+
+        val taskId = tasksReference.push().key
+        val taskData = hashMapOf(
+            "taskId" to taskId,
+            "owner" to owner,
+            "shared_users" to sharedUsers,
+            "status" to status,
+            "type" to type,
+            "name" to name,
+            "dueDate" to dueDate,
+            "priority" to priority,
+            "description" to description
+
+        )
+
+
+        tasksReference.child(taskId.orEmpty()).setValue(taskData)
+            .addOnSuccessListener {
+
+                println("Task added successfully")
+            }
+            .addOnFailureListener { e ->
+
+                println("Error adding task: $e")
+            }
     }
 
 
