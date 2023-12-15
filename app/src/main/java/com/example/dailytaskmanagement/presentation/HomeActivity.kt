@@ -1,11 +1,11 @@
 package com.example.dailytaskmanagement.presentation
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 
 import androidx.compose.foundation.background
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 
@@ -119,9 +120,9 @@ fun HomeScreen(username: String?, navController: NavController) {
                         isLogoutDialogVisible.value = true
                     },
                     modifier = Modifier
-                            .absolutePadding(top = 8.dp, right = 16.dp)
-                    .size(100.dp)
-                    .background(color = Color.Transparent)
+                        .absolutePadding(top = 8.dp, right = 16.dp)
+                        .size(80.dp)
+                        .background(color = Color.Transparent)
                 ) {
                     HomeButton(
                         "Logout",
@@ -146,35 +147,41 @@ fun HomeScreen(username: String?, navController: NavController) {
                         item {
                             HomeButton(
                                 "SHARED TASKS WITH ME",
-                                painterResource(id = R.drawable.baseline_folder_shared_24)
+                                painterResource(id = R.drawable.baseline_folder_shared_24),
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "shared tasks with me")
                             )
                         }
                         item {
                             HomeButton(
                                 "WORK",
-                                painterResource(id = R.drawable.baseline_home_work_24)
+                                painterResource(id = R.drawable.baseline_home_work_24),
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "work")
                             )
                         }
                         item {
                             HomeButton(
                                 "GYM",
-                                painterResource(id = R.drawable.baseline_fitness_center_24)
+                                painterResource(id = R.drawable.baseline_fitness_center_24),
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "gym")
                             )
                         }
                         item {
                             HomeButton(
                                 "READING",
-                                painterResource(id = R.drawable.baseline_menu_book_24)
+                                painterResource(id = R.drawable.baseline_menu_book_24),
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "reading")
                             )
                         }
                         item {
                             HomeButton(
                                 "SELF LEARNING",
-                                painterResource(id = R.drawable.baseline_self_improvement_24)
+                                painterResource(id = R.drawable.baseline_self_improvement_24),
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "self learning")
                             )
                         }
                         item {
-                            HomeButton("OTHER TASKS", Icons.Default.Person)
+                            HomeButton("OTHER TASKS", Icons.Default.Person,
+                                openTaskCategoryPage(username = username.orEmpty(),taskType = "other tasks"))
                         }
                     }
                 )
@@ -184,7 +191,7 @@ fun HomeScreen(username: String?, navController: NavController) {
 }
 
 @Composable
-fun HomeButton(title: String, icon: Any) {
+fun HomeButton(title: String, icon: Any, onClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -194,23 +201,31 @@ fun HomeButton(title: String, icon: Any) {
     ) {
 
         if (icon is ImageVector) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = Color.Black,
+            IconButton(
+                onClick = onClick,
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxSize()
-            )
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = Color.Black,
+                )
+            }
         } else if (icon is Painter) {
-            Icon(
-                painter = icon,
-                contentDescription = title,
-                tint = Color.Black,
+            IconButton(
+                onClick = onClick,
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxSize()
-            )
+            ) {
+                Icon(
+                    painter = icon,
+                    contentDescription = title,
+                    tint = Color.Black,
+                )
+            }
         }
         Text(
             text = title,
@@ -248,3 +263,15 @@ fun LogoutDialog(onConfirmLogout: () -> Unit, onDismiss: () -> Unit) {
         }
     )
 }
+
+@Composable
+private fun openTaskCategoryPage(username: String, taskType: String): () -> Unit {
+    val context = LocalContext.current
+    return {
+        val intent = Intent(context, TaskCategoryPageActivity::class.java)
+        intent.putExtra("taskType", taskType)
+        intent.putExtra("username", username)
+        context.startActivity(intent)
+    }
+}
+
