@@ -15,7 +15,6 @@ class FirebaseUtils {
                     for (taskSnapshot in snapshot.children) {
                         val task = taskSnapshot.getValue(Task::class.java)
                         task?.let {
-
                             if (it.sharedUsers is List<*> && username in (it.sharedUsers as List<*>)) {
                                 tasks.add(it)
                             }
@@ -94,9 +93,6 @@ class FirebaseUtils {
     }
 
     fun updateTask(updatedTask: Task?) {
-
-
-
 
         val taskId = updatedTask?.taskId
         if (taskId != null) {

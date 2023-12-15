@@ -229,7 +229,6 @@ private fun addTaskToFirebase(username: String?, taskName: String, dueDate: Stri
             owner = username,
             sharedUsers = listOf(""),
             status = "not started",
-
             name = taskName,
             dueDate = dueDate,
             priority = priority,

@@ -19,14 +19,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dailytaskmanagement.R
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
 
 class TaskCategoryPageActivity : ComponentActivity() {
@@ -109,6 +114,18 @@ class TaskCategoryPageActivity : ComponentActivity() {
     ) {
 
         var selectedTask by remember { mutableStateOf<Task?>(null) }
+        var isAscendingOrder by remember { mutableStateOf(true) }
+
+        val sortedTasks = tasks.sortedWith(compareBy<Task> {
+            when (it.priority) {
+                "High" -> 3
+                "Medium" -> 2
+                "Low" -> 1
+                else -> 0
+            }
+        }.let {
+            if (isAscendingOrder) it else it.reversed()
+        })
 
         Column(
             modifier = Modifier
@@ -117,6 +134,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top
         ) {
+
             TopAppBar(
                 title = {
                     Text(
@@ -128,19 +146,44 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     )
                 },
                 actions = {
-                    if (taskType != "shared tasks with me") {
-                        IconButton(
-                            onClick = {
-                                val intent = Intent(
-                                    this@TaskCategoryPageActivity,
-                                    AddTaskFormActivity::class.java
-                                )
-                                intent.putExtra("username", username)
-                                intent.putExtra("taskType", taskType)
-                                startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
-                            }
+                    Row(
+                        modifier = Modifier
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task")
+                            Text(
+                                text = "Sort Tasks by Priority",
+                                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            )
+                            IconButton(
+                                onClick = {
+                                    isAscendingOrder = !isAscendingOrder
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = if (isAscendingOrder) R.drawable.baseline_arrow_upward_24 else R.drawable.baseline_arrow_downward_24),
+                                    contentDescription = if (isAscendingOrder) "Sort Ascending" else "Sort Descending"
+                                )
+                            }
+                        }
+                        if (taskType != "shared tasks with me") {
+                            IconButton(
+                                onClick = {
+                                    val intent = Intent(
+                                        this@TaskCategoryPageActivity,
+                                        AddTaskFormActivity::class.java
+                                    )
+                                    intent.putExtra("username", username)
+                                    intent.putExtra("taskType", taskType)
+                                    startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task")
+                            }
                         }
                     }
                 },
@@ -151,7 +194,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(tasks) { task ->
+                items(sortedTasks) { task ->
                     TaskItem(
                         task = task, taskType = taskType
                     )
@@ -159,6 +202,13 @@ class TaskCategoryPageActivity : ComponentActivity() {
             }
         }
     }
+
+
+
+
+
+
+
 
 
     @OptIn(ExperimentalMaterial3Api::class)
