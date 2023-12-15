@@ -217,6 +217,61 @@ class TaskCategoryPageActivity : ComponentActivity() {
         var showDeleteDialog by remember { mutableStateOf(false) }
         var expanded by remember { mutableStateOf(false) }
         var showShareDialog by remember { mutableStateOf(false) }
+        var selectedUsers by remember { mutableStateOf<List<String>>(emptyList()) }
+        var showUnshareDialog by remember { mutableStateOf(false) }
+        if (showUnshareDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showUnshareDialog = false
+                    selectedUsers = emptyList()
+                },
+                title = { Text("Unshare Task") },
+                text = {
+                    Column {
+                        Text("Select users to unshare from:")
+                        for (user in task.sharedUsers.orEmpty()) {
+                            if(user != "") {
+                                Checkbox(
+                                    checked = selectedUsers.contains(user),
+                                    onCheckedChange = {
+                                        selectedUsers = if (it) {
+                                            selectedUsers + user
+                                        } else {
+                                            selectedUsers - user
+                                        }
+                                    },
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                                Text(text = user)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+
+                            task.sharedUsers = task.sharedUsers?.filterNot { it in selectedUsers }
+                            FirebaseUtils().updateTask(task)
+                            showUnshareDialog = false
+
+                            refreshTasks.invoke()
+                        }
+                    ) {
+                        Text("Unshare")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            showUnshareDialog = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = {
@@ -353,11 +408,30 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 Text(text = "Share")
                             }
 
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
 
-                            Button(onClick = { expanded = false }) {
+                            Button(
+                                onClick = { showUnshareDialog = true },
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                Text(text = "Unshare")
+                            }
+
+
+                            Button(
+                                onClick = { expanded = false },
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
                                 Text(text = "Close")
                             }
                         }
+
                     }
                 }
             }

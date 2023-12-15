@@ -110,7 +110,7 @@ fun EditTaskForm(
             .background(Color.Gray)
             .padding(16.dp)
     ) {
-
+        // Task Name
         OutlinedTextField(
             value = taskName,
             onValueChange = { taskName = it },
@@ -230,7 +230,7 @@ fun EditTaskForm(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Update Button
+
             Button(
                 onClick = {
 
