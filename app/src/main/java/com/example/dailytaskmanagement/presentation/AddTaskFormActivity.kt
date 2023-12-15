@@ -17,11 +17,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.ui.unit.dp
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
 
@@ -94,6 +96,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
             }
         }
 
+        // Task Name
         OutlinedTextField(
             value = taskName,
             onValueChange = { taskName = it },
@@ -103,6 +106,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
                 .padding(8.dp)
                 .background(Color.White)
         )
+
 
         showDatePicker(
             context=LocalContext.current,
@@ -148,7 +152,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
 
             }
         }
-
+        // Description
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -219,7 +223,6 @@ fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (Stri
 
 private fun addTaskToFirebase(username: String?, taskName: String, dueDate: String, priority: String, description: String, type: String?) {
     if (username != null) {
-
         FirebaseUtils().addTask(
             owner = username,
             sharedUsers = emptyList(),

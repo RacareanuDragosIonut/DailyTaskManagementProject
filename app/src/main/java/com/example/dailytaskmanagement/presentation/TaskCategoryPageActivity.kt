@@ -26,13 +26,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
 
 class TaskCategoryPageActivity : ComponentActivity() {
     companion object {
         const val ADD_TASK_REQUEST_CODE = 123
     }
+
+
+    private lateinit var refreshTasks: () -> Unit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,13 +49,12 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     val username = intent.getStringExtra("username")
 
 
-
                     when (taskType) {
                         "shared tasks with me" -> {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
 
 
-                            val refreshTasks: () -> Unit = {
+                            refreshTasks = {
                                 FirebaseUtils().getTasksBySharedUsers(username.orEmpty()) { tasks ->
                                     tasksState = tasks
                                 }
@@ -66,8 +67,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 title = "Shared Tasks with me",
                                 tasksState,
                                 username,
-                                taskType,
-                                refreshTasks
+                                taskType
                             )
                         }
 
@@ -75,7 +75,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
 
 
-                            val refreshTasks: () -> Unit = {
+                            refreshTasks = {
                                 FirebaseUtils().getTasksByTypeAndOwner(taskType.orEmpty(), username.orEmpty()) { tasks ->
                                     tasksState = tasks
                                 }
@@ -88,8 +88,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 title = "Your $taskType Tasks",
                                 tasksState,
                                 username,
-                                taskType,
-                                refreshTasks
+                                taskType
                             )
                         }
 
@@ -105,8 +104,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
         title: String,
         tasks: List<Task>,
         username: String?,
-        taskType: String?,
-        refreshTasks: () -> Unit
+        taskType: String?
     ) {
         Column(
             modifier = Modifier
@@ -165,7 +163,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 .fillMaxWidth()
                 .padding(8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.Green,
+                containerColor = Color.DarkGray,
                 contentColor = Color.White
             )
         ) {
@@ -187,6 +185,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
             Log.d("TaskCategoryPage", "Task added successfully")
 
 
+            refreshTasks.invoke()
         }
     }
 }
