@@ -1,4 +1,4 @@
-
+import android.util.Log
 import com.google.firebase.database.*
 
 class FirebaseUtils {
@@ -6,15 +6,22 @@ class FirebaseUtils {
     private val database = FirebaseDatabase.getInstance("https://dailytaskmanagement-a3cfa-default-rtdb.europe-west1.firebasedatabase.app")
     private val tasksReference = database.getReference("tasks")
 
-    fun getTasksBySharedUsers(username: String, onComplete: (List<Task>) -> Unit) {
-        tasksReference.orderByChild("shared_users").startAt(username).endAt(username)
+    fun getTasksSharedWithUser(username: String, onComplete: (List<Task>) -> Unit) {
+        tasksReference.orderByChild("owner").startAt("").endAt(username)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val tasks = mutableListOf<Task>()
+
                     for (taskSnapshot in snapshot.children) {
                         val task = taskSnapshot.getValue(Task::class.java)
-                        task?.let { tasks.add(it) }
+                        task?.let {
+
+                            if (it.sharedUsers is List<*> && username in (it.sharedUsers as List<*>)) {
+                                tasks.add(it)
+                            }
+                        }
                     }
+
                     onComplete(tasks)
                 }
 
@@ -23,6 +30,8 @@ class FirebaseUtils {
                 }
             })
     }
+
+
 
 
     fun getTasksByTypeAndOwner(type: String, owner: String, onComplete: (List<Task>) -> Unit) {
@@ -62,7 +71,7 @@ class FirebaseUtils {
         val taskData = hashMapOf(
             "taskId" to taskId,
             "owner" to owner,
-            "shared_users" to sharedUsers,
+            "sharedUsers" to sharedUsers,
             "status" to status,
             "type" to type,
             "name" to name,
@@ -71,7 +80,7 @@ class FirebaseUtils {
             "description" to description
 
         )
-
+        Log.d("FirebaseUtils", "Task Data: $taskData")
 
         tasksReference.child(taskId.orEmpty()).setValue(taskData)
             .addOnSuccessListener {
@@ -87,6 +96,8 @@ class FirebaseUtils {
     fun updateTask(updatedTask: Task?) {
 
 
+
+
         val taskId = updatedTask?.taskId
         if (taskId != null) {
 
@@ -95,6 +106,7 @@ class FirebaseUtils {
                 "dueDate" to updatedTask.dueDate,
                 "priority" to updatedTask.priority,
                 "description" to updatedTask.description,
+                "sharedUsers" to updatedTask.sharedUsers
 
             )
 

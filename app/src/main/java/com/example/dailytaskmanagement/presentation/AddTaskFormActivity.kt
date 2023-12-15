@@ -118,6 +118,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
         )
 
 
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -226,8 +227,9 @@ private fun addTaskToFirebase(username: String?, taskName: String, dueDate: Stri
 
         FirebaseUtils().addTask(
             owner = username,
-            sharedUsers = emptyList(),
+            sharedUsers = listOf(""),
             status = "not started",
+
             name = taskName,
             dueDate = dueDate,
             priority = priority,

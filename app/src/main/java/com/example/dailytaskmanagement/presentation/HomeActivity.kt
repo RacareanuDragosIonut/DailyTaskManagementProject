@@ -128,7 +128,8 @@ fun HomeScreen(username: String?, navController: NavController) {
                 ) {
                     HomeButton(
                         "Logout",
-                        painterResource(id = R.drawable.baseline_logout_24)
+                        painterResource(id = R.drawable.baseline_logout_24),
+                        {isLogoutDialogVisible.value = true}
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))

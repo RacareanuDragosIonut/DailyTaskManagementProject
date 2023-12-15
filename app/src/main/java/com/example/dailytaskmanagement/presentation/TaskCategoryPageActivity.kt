@@ -56,7 +56,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
 
 
                             refreshTasks = {
-                                FirebaseUtils().getTasksBySharedUsers(username.orEmpty()) { tasks ->
+                                FirebaseUtils().getTasksSharedWithUser(username.orEmpty()) { tasks ->
                                     tasksState = tasks
                                 }
                             }
@@ -108,6 +108,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
         taskType: String?
     ) {
 
+        var selectedTask by remember { mutableStateOf<Task?>(null) }
 
         Column(
             modifier = Modifier
@@ -147,52 +148,44 @@ class TaskCategoryPageActivity : ComponentActivity() {
             )
 
 
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(tasks) { task ->
-                        TaskItem(task = task) {
-
-
-                        }
-                    }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(tasks) { task ->
+                    TaskItem(
+                        task = task, taskType = taskType
+                    )
                 }
-
+            }
         }
     }
 
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TaskItem(task: Task, onClick: () -> Unit) {
-        var showDeleteDialog = remember { mutableStateOf(false) }
+    fun TaskItem(task: Task, taskType: String?) {
+        var showDeleteDialog by remember { mutableStateOf(false) }
         var expanded by remember { mutableStateOf(false) }
-        if (showDeleteDialog.value) {
+        var showShareDialog by remember { mutableStateOf(false) }
+        if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = {
-
-                    showDeleteDialog.value = false
+                    showDeleteDialog = false
                 },
                 title = { Text("Confirm Deletion") },
                 text = { Text("Are you sure you want to delete the task ${task?.name}?") },
                 confirmButton = {
                     Button(
                         onClick = {
-
                             FirebaseUtils().deleteTask(task) { success ->
                                 if (success) {
-
                                     Log.d("TaskCategoryPage", "Task deleted successfully")
                                     refreshTasks.invoke()
                                 } else {
-
                                     Log.e("TaskCategoryPage", "Failed to delete task")
                                 }
                             }
-
-
-                            showDeleteDialog.value = false
+                            showDeleteDialog = false
                         }
                     ) {
                         Text("Confirm")
@@ -201,8 +194,51 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 dismissButton = {
                     Button(
                         onClick = {
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+        if(showShareDialog){
+            var sharedUserInput by remember { mutableStateOf("") }
+            var sharedUsers by remember { mutableStateOf(task.sharedUsers ?: emptyList()) }
 
-                            showDeleteDialog.value = false
+            AlertDialog(
+                onDismissRequest = { refreshTasks.invoke() },
+                title = { Text("Share Task") },
+                text = {
+                    Column {
+                        Text("Share this task with other users:")
+                        TextField(
+                            value = sharedUserInput,
+                            onValueChange = { sharedUserInput = it },
+                            label = { Text("Username") }
+                        )
+                        if (sharedUsers != listOf("")) {
+                            Text("Shared with: ${sharedUsers.filter { it != "" }.joinToString(", ")}")
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            sharedUsers = sharedUsers + sharedUserInput
+                            sharedUserInput = ""
+                            task.sharedUsers = sharedUsers
+                            FirebaseUtils().updateTask(task)
+                            showShareDialog = false
+                        }
+                    ) {
+                        Text("Share Task With User")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            showShareDialog = false
                         }
                     ) {
                         Text("Cancel")
@@ -223,7 +259,6 @@ class TaskCategoryPageActivity : ComponentActivity() {
             ),
             onClick = {
                 expanded = !expanded
-                onClick()
             }
         ) {
             Column(
@@ -237,40 +272,41 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     Text(text = "Due Date: ${task.dueDate}")
                     Text(text = "Status: ${task.status}")
                     Text(text = "Description: ${task.description}")
+                    if(taskType != "shared tasks with me"){
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-
-                        Button(onClick = {
-                            val intent = Intent(
-                            this@TaskCategoryPageActivity,
-                            EditTaskFormActivity::class.java
-                        )
-                            intent.putExtra("task", task)
-                            intent.putExtra("username", task.owner)
-                            intent.putExtra("taskType", task.type)
-                            startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
-                        }) {
-                            Text(text = "Edit")
-                        }
-                        Button(onClick = {
-                            showDeleteDialog.value = true
-                        }
-                        )
-                        {
-                            Text(text = "Delete")
-                        }
-                        Button(onClick = {  }) {
-                            Text(text = "Share")
-                        }
+                            Button(onClick = {
+                                val intent = Intent(
+                                    this@TaskCategoryPageActivity,
+                                    EditTaskFormActivity::class.java
+                                )
+                                intent.putExtra("task", task)
+                                intent.putExtra("username", task.owner)
+                                intent.putExtra("taskType", task.type)
+                                startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
+                            }) {
+                                Text(text = "Edit")
+                            }
+                            Button(onClick = {
+                                showDeleteDialog = true
+                            }) {
+                                Text(text = "Delete")
+                            }
+                            Button(onClick = {
+                                showShareDialog = true
+                            }) {
+                                Text(text = "Share")
+                            }
 
 
-                        Button(onClick = { expanded = false }) {
-                            Text(text = "Close")
+                            Button(onClick = { expanded = false }) {
+                                Text(text = "Close")
+                            }
                         }
                     }
                 }
@@ -278,61 +314,60 @@ class TaskCategoryPageActivity : ComponentActivity() {
         }
     }
 
+
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun showDeleteTaskDialog(task: Task?) {
-        val showDialog = remember { mutableStateOf(true) }
+    fun ShareTaskPage(
+        task: Task,
+        onShare: (List<String>) -> Unit,
+        onClose: () -> Unit
+    ) {
+        var sharedUserInput by remember { mutableStateOf("") }
+        var sharedUsers by remember { mutableStateOf(task.sharedUsers ?: emptyList()) }
 
-        if (showDialog.value) {
-            AlertDialog(
-                onDismissRequest = {
-                    // Dismiss the dialog
-                    showDialog.value = false
-                },
-                title = { Text("Confirm Deletion") },
-                text = { Text("Are you sure you want to delete the task ${task?.name}?") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-
-                            FirebaseUtils().deleteTask(task) { success ->
-                                if (success) {
-
-                                    Log.d("TaskCategoryPage", "Task deleted successfully")
-                                } else {
-
-                                    Log.e("TaskCategoryPage", "Failed to delete task")
-                                }
-                            }
-
-
-                            showDialog.value = false
-                        }
-                    ) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = {
-
-                            showDialog.value = false
-                        }
-                    ) {
-                        Text("Cancel")
+        AlertDialog(
+            onDismissRequest = { onClose() },
+            title = { Text("Share Task") },
+            text = {
+                Column {
+                    Text("Share this task with other users:")
+                    TextField(
+                        value = sharedUserInput,
+                        onValueChange = { sharedUserInput = it },
+                        label = { Text("Username") }
+                    )
+                    if (sharedUsers.isNotEmpty()) {
+                        Text("Shared with: ${sharedUsers.joinToString(", ")}")
                     }
                 }
-            )
-        }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        sharedUsers = sharedUsers + sharedUserInput
+                        sharedUserInput = ""
+                    }
+                ) {
+                    Text("Add User")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        onClose()
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == ADD_TASK_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-
             Log.d("TaskCategoryPage", "Task added/updated successfully")
-
-
             refreshTasks.invoke()
         }
     }

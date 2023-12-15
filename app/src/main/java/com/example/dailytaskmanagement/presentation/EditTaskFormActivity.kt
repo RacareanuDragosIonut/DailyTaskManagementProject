@@ -85,7 +85,7 @@ fun EditTaskForm(
 ) {
 
     val priorityOptions = listOf("Low", "Medium", "High")
-
+    val statusOptions = listOf("not started", "in progress", "completed")
     var taskName by remember { mutableStateOf(task?.name.orEmpty()) }
     var dueDate by remember { mutableStateOf(task?.dueDate.orEmpty()) }
     var priority by remember {
@@ -93,6 +93,13 @@ fun EditTaskForm(
             task?.priority
                 ?.takeIf { priority -> priorityOptions.contains(priority) }
                 ?: priorityOptions.first()
+        )
+    }
+    var status by remember {
+        mutableStateOf(
+            task?.priority
+                ?.takeIf { status -> statusOptions.contains(status) }
+                ?: statusOptions.first()
         )
     }
     var description by remember { mutableStateOf(task?.description.orEmpty()) }
@@ -164,6 +171,45 @@ fun EditTaskForm(
             }
         }
 
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .background(Color.White)
+        ) {
+            var expanded by remember { mutableStateOf(false) }
+            var selectedIndex by remember {
+                mutableStateOf(
+                    statusOptions.indexOf(status)
+                        .takeIf { it != -1 }
+                        ?: 0
+                )
+            }
+
+            Text(
+                text = "Status: ${statusOptions[selectedIndex]}",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { expanded = true }
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                statusOptions.forEachIndexed { index, statusOption ->
+                    DropdownMenuItem(
+                        text = { Text(text = statusOption) },
+                        onClick = {
+                            selectedIndex = index
+                            status = statusOption
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         OutlinedTextField(
             value = description,
@@ -196,6 +242,7 @@ fun EditTaskForm(
                         description = description,
                         owner = username.orEmpty(),
                         type = taskType.orEmpty(),
+                        sharedUsers = task?.sharedUsers
 
                     )
 

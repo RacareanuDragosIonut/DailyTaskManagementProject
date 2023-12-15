@@ -10,7 +10,7 @@ data class Task(
     val status: String? = "",
     val type: String? = "",
     val dueDate: String? = "",
-    val sharedUsers: List<String> = emptyList()
+    var sharedUsers: List<String> ? = emptyList()
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString(),
