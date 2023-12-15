@@ -86,8 +86,6 @@ class FirebaseUtils {
 
     fun updateTask(updatedTask: Task?) {
 
-        val tasksReference = database.getReference("tasks")
-
 
         val taskId = updatedTask?.taskId
         if (taskId != null) {
@@ -115,6 +113,18 @@ class FirebaseUtils {
             println("Invalid task ID for update")
         }
     }
+
+    fun deleteTask(task: Task?, onComplete: (Boolean) -> Unit) {
+        tasksReference.child(task?.taskId.orEmpty())
+            .removeValue()
+            .addOnSuccessListener {
+                onComplete(true)
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
+    }
+
 
 
 }

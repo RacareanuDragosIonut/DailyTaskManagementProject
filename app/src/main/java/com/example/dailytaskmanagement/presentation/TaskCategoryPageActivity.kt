@@ -108,7 +108,6 @@ class TaskCategoryPageActivity : ComponentActivity() {
         taskType: String?
     ) {
 
-        var selectedTask by remember { mutableStateOf<Task?>(null) }
 
         Column(
             modifier = Modifier
@@ -167,8 +166,50 @@ class TaskCategoryPageActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TaskItem(task: Task, onClick: () -> Unit) {
+        var showDeleteDialog = remember { mutableStateOf(false) }
         var expanded by remember { mutableStateOf(false) }
+        if (showDeleteDialog.value) {
+            AlertDialog(
+                onDismissRequest = {
 
+                    showDeleteDialog.value = false
+                },
+                title = { Text("Confirm Deletion") },
+                text = { Text("Are you sure you want to delete the task ${task?.name}?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+
+                            FirebaseUtils().deleteTask(task) { success ->
+                                if (success) {
+
+                                    Log.d("TaskCategoryPage", "Task deleted successfully")
+                                    refreshTasks.invoke()
+                                } else {
+
+                                    Log.e("TaskCategoryPage", "Failed to delete task")
+                                }
+                            }
+
+
+                            showDeleteDialog.value = false
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+
+                            showDeleteDialog.value = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         ElevatedCard(
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 6.dp
@@ -216,7 +257,11 @@ class TaskCategoryPageActivity : ComponentActivity() {
                         }) {
                             Text(text = "Edit")
                         }
-                        Button(onClick = {  }) {
+                        Button(onClick = {
+                            showDeleteDialog.value = true
+                        }
+                        )
+                        {
                             Text(text = "Delete")
                         }
                         Button(onClick = {  }) {
@@ -233,7 +278,52 @@ class TaskCategoryPageActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun showDeleteTaskDialog(task: Task?) {
+        val showDialog = remember { mutableStateOf(true) }
 
+        if (showDialog.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    // Dismiss the dialog
+                    showDialog.value = false
+                },
+                title = { Text("Confirm Deletion") },
+                text = { Text("Are you sure you want to delete the task ${task?.name}?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+
+                            FirebaseUtils().deleteTask(task) { success ->
+                                if (success) {
+
+                                    Log.d("TaskCategoryPage", "Task deleted successfully")
+                                } else {
+
+                                    Log.e("TaskCategoryPage", "Failed to delete task")
+                                }
+                            }
+
+
+                            showDialog.value = false
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+
+                            showDialog.value = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

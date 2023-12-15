@@ -5,9 +5,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
 import com.example.dailytaskmanagement.presentation.login_screen.SignInScreen
 import com.example.dailytaskmanagement.presentation.signup_screen.SignUpScreen
-
 
 @Composable
 fun NavigationGraph(
