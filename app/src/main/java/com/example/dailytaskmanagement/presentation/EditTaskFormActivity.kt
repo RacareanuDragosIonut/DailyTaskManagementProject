@@ -15,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -110,7 +109,7 @@ fun EditTaskForm(
             .background(Color.Gray)
             .padding(16.dp)
     ) {
-        // Task Name
+
         OutlinedTextField(
             value = taskName,
             onValueChange = { taskName = it },
@@ -120,7 +119,6 @@ fun EditTaskForm(
                 .padding(8.dp)
                 .background(Color.White)
         )
-
 
         showDatePickerEdit(
             context = LocalContext.current,
@@ -239,6 +237,7 @@ fun EditTaskForm(
                         name = taskName,
                         dueDate = dueDate,
                         priority = priority,
+                        status = status,
                         description = description,
                         owner = username.orEmpty(),
                         type = taskType.orEmpty(),

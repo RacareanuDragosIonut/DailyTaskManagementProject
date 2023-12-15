@@ -94,6 +94,9 @@ class FirebaseUtils {
 
     fun updateTask(updatedTask: Task?) {
 
+
+
+
         val taskId = updatedTask?.taskId
         if (taskId != null) {
 
@@ -101,6 +104,7 @@ class FirebaseUtils {
                 "name" to updatedTask.name,
                 "dueDate" to updatedTask.dueDate,
                 "priority" to updatedTask.priority,
+                "status" to updatedTask.status,
                 "description" to updatedTask.description,
                 "sharedUsers" to updatedTask.sharedUsers
 

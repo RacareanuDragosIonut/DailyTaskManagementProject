@@ -139,7 +139,6 @@ fun SignInScreen(viewModel: SignInViewModel = hiltViewModel(),navController: Nav
                     val success = state.value?.isSuccess
                     Toast.makeText(context, "${success}", Toast.LENGTH_LONG).show()
 
-
                     val intent = Intent(context, HomeActivity::class.java)
                     intent.putExtra("username_key", email)
                     context.startActivity(intent)

@@ -85,7 +85,6 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
                 .padding(8.dp),
             horizontalArrangement = Arrangement.End
         ) {
-
             IconButton(
                 onClick = {
                     onClose()
@@ -97,7 +96,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
             }
         }
 
-        // Task Name
+
         OutlinedTextField(
             value = taskName,
             onValueChange = { taskName = it },
@@ -147,13 +146,11 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
                         expanded = false
                   })
 
-
-
                 }
 
             }
         }
-
+        // Description
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -176,7 +173,6 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
 
             Button(
                 onClick = {
-
                     onSubmit(taskName, dueDate, priority, description)
                 },
                 modifier = Modifier
@@ -221,10 +217,8 @@ fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (Stri
 }
 
 
-
 private fun addTaskToFirebase(username: String?, taskName: String, dueDate: String, priority: String, description: String, type: String?) {
     if (username != null) {
-
         FirebaseUtils().addTask(
             owner = username,
             sharedUsers = listOf(""),

@@ -113,7 +113,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
         taskType: String?
     ) {
 
-        var selectedTask by remember { mutableStateOf<Task?>(null) }
+
         var isAscendingOrder by remember { mutableStateOf(true) }
 
         val sortedTasks = tasks.sortedWith(compareBy<Task> {
