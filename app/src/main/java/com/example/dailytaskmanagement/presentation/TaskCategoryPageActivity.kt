@@ -19,12 +19,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -33,12 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dailytaskmanagement.R
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
+import java.text.SimpleDateFormat
+
+import java.util.Locale
 
 class TaskCategoryPageActivity : ComponentActivity() {
     companion object {
         const val ADD_TASK_REQUEST_CODE = 123
     }
-
 
     private lateinit var refreshTasks: () -> Unit
 
@@ -46,26 +46,21 @@ class TaskCategoryPageActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DailyTaskManagementTheme {
-
                 Surface(
                     color = MaterialTheme.colorScheme.background
                 ) {
-
                     val taskType = intent.getStringExtra("taskType")
                     val username = intent.getStringExtra("username")
-
 
                     when (taskType) {
                         "shared tasks with me" -> {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
-
 
                             refreshTasks = {
                                 FirebaseUtils().getTasksSharedWithUser(username.orEmpty()) { tasks ->
                                     tasksState = tasks
                                 }
                             }
-
 
                             refreshTasks.invoke()
 
@@ -80,13 +75,11 @@ class TaskCategoryPageActivity : ComponentActivity() {
                         "work", "gym", "reading", "self learning", "other tasks" -> {
                             var tasksState by remember { mutableStateOf<List<Task>>(emptyList()) }
 
-
                             refreshTasks = {
                                 FirebaseUtils().getTasksByTypeAndOwner(taskType.orEmpty(), username.orEmpty()) { tasks ->
                                     tasksState = tasks
                                 }
                             }
-
 
                             refreshTasks.invoke()
 
@@ -97,14 +90,12 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 taskType
                             )
                         }
-
                     }
                 }
             }
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TaskCategoryPageContent(
         title: String,
@@ -112,21 +103,32 @@ class TaskCategoryPageActivity : ComponentActivity() {
         username: String?,
         taskType: String?
     ) {
-
-
         var isAscendingOrder by remember { mutableStateOf(true) }
-
-        val sortedTasks = tasks.sortedWith(compareBy<Task> {
-            when (it.priority) {
-                "High" -> 3
-                "Medium" -> 2
-                "Low" -> 1
-                else -> 0
+        var sortByPriority by remember { mutableStateOf(false) }
+        var sortByDueDate by remember { mutableStateOf(false) }
+        var sortedTasks = tasks;
+        if(sortByPriority) {
+             sortedTasks = tasks.sortedWith(compareBy<Task> {
+                when (it.priority) {
+                    "High" -> 3
+                    "Medium" -> 2
+                    "Low" -> 1
+                    else -> 0
+                }
+            }.let {
+                if (isAscendingOrder) it else it.reversed()
+            })
+        }
+        else{
+            if(sortByDueDate){
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                sortedTasks = tasks.sortedBy {
+                    dateFormat.parse(it.dueDate)
+                }.let {
+                    if (isAscendingOrder) it else it.reversed()
+                }
             }
-        }.let {
-            if (isAscendingOrder) it else it.reversed()
-        })
-
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,60 +137,122 @@ class TaskCategoryPageActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Top
         ) {
 
-            TopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
-                },
-                actions = {
-                    Row(
-                        modifier = Modifier
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Yellow)
+            ) {
+                Text(
+                    text = title,
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Yellow),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                if (taskType != "shared tasks with me") {
+                    Column(
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Sort Tasks by Priority",
-                                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                            )
-                            IconButton(
-                                onClick = {
-                                    isAscendingOrder = !isAscendingOrder
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = if (isAscendingOrder) R.drawable.baseline_arrow_upward_24 else R.drawable.baseline_arrow_downward_24),
-                                    contentDescription = if (isAscendingOrder) "Sort Ascending" else "Sort Descending"
+                        IconButton(
+                            onClick = {
+                                val intent = Intent(
+                                    this@TaskCategoryPageActivity,
+                                    AddTaskFormActivity::class.java
                                 )
+                                intent.putExtra("username", username)
+                                intent.putExtra("taskType", taskType)
+                                startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
                             }
-                        }
-                        if (taskType != "shared tasks with me") {
-                            IconButton(
-                                onClick = {
-                                    val intent = Intent(
-                                        this@TaskCategoryPageActivity,
-                                        AddTaskFormActivity::class.java
-                                    )
-                                    intent.putExtra("username", username)
-                                    intent.putExtra("taskType", taskType)
-                                    startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
-                                }
-                            ) {
-                                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task")
-                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add Task"
+                            )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
-            )
+                }
+
+
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Sort Tasks by Priority",
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    )
+                    Checkbox(
+                        checked = sortByPriority,
+                        onCheckedChange = {
+                            if (it) {
+
+                                sortByPriority = it
+                                sortByDueDate = false
+                            } else {
+
+                                sortByPriority = it
+                                sortByDueDate = it
+                            }
+                            isAscendingOrder = sortByPriority || sortByDueDate
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+
+
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Sort Tasks by Due Date",
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    )
+                    Checkbox(
+                        checked = sortByDueDate,
+                        onCheckedChange = {
+                            if (it) {
+
+                                sortByDueDate = it
+                                sortByPriority = false
+                            } else {
+
+                                sortByDueDate = it
+                                sortByPriority = it
+                            }
+                            isAscendingOrder = sortByPriority || sortByDueDate
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+
+
+                if (sortByPriority || sortByDueDate) {
+                    Column(
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Sort Order",
+                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        )
+                        IconButton(
+                            onClick = {
+                                isAscendingOrder = !isAscendingOrder
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = if (isAscendingOrder) R.drawable.baseline_arrow_upward_24 else R.drawable.baseline_arrow_downward_24),
+                                contentDescription = if (isAscendingOrder) "Sort Ascending" else "Sort Descending"
+                            )
+                        }
+                    }
+                }
+            }
 
 
             LazyColumn(
@@ -204,13 +268,6 @@ class TaskCategoryPageActivity : ComponentActivity() {
     }
 
 
-
-
-
-
-
-
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TaskItem(task: Task, taskType: String?) {
@@ -219,6 +276,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
         var showShareDialog by remember { mutableStateOf(false) }
         var selectedUsers by remember { mutableStateOf<List<String>>(emptyList()) }
         var showUnshareDialog by remember { mutableStateOf(false) }
+
         if (showUnshareDialog) {
             AlertDialog(
                 onDismissRequest = {
@@ -230,7 +288,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     Column {
                         Text("Select users to unshare from:")
                         for (user in task.sharedUsers.orEmpty()) {
-                            if(user != "") {
+                            if (user != "") {
                                 Checkbox(
                                     checked = selectedUsers.contains(user),
                                     onCheckedChange = {
@@ -250,11 +308,9 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 confirmButton = {
                     Button(
                         onClick = {
-
                             task.sharedUsers = task.sharedUsers?.filterNot { it in selectedUsers }
                             FirebaseUtils().updateTask(task)
                             showUnshareDialog = false
-
                             refreshTasks.invoke()
                         }
                     ) {
@@ -272,6 +328,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 }
             )
         }
+
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = {
@@ -307,7 +364,8 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 }
             )
         }
-        if(showShareDialog){
+
+        if (showShareDialog) {
             var sharedUserInput by remember { mutableStateOf("") }
             var sharedUsers by remember { mutableStateOf(task.sharedUsers ?: emptyList()) }
 
@@ -351,6 +409,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                 }
             )
         }
+
         ElevatedCard(
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 6.dp
@@ -377,14 +436,13 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     Text(text = "Due Date: ${task.dueDate}")
                     Text(text = "Status: ${task.status}")
                     Text(text = "Description: ${task.description}")
-                    if(taskType != "shared tasks with me"){
+                    if (taskType != "shared tasks with me") {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-
                             Button(onClick = {
                                 val intent = Intent(
                                     this@TaskCategoryPageActivity,
@@ -407,7 +465,6 @@ class TaskCategoryPageActivity : ComponentActivity() {
                             }) {
                                 Text(text = "Share")
                             }
-
                         }
                         Row(
                             modifier = Modifier
@@ -415,15 +472,12 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 .padding(top = 8.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
-
                             Button(
                                 onClick = { showUnshareDialog = true },
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
                                 Text(text = "Unshare")
                             }
-
-
                             Button(
                                 onClick = { expanded = false },
                                 modifier = Modifier.padding(start = 8.dp)
@@ -431,60 +485,10 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 Text(text = "Close")
                             }
                         }
-
                     }
                 }
             }
         }
-    }
-
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ShareTaskPage(
-        task: Task,
-        onShare: (List<String>) -> Unit,
-        onClose: () -> Unit
-    ) {
-        var sharedUserInput by remember { mutableStateOf("") }
-        var sharedUsers by remember { mutableStateOf(task.sharedUsers ?: emptyList()) }
-
-        AlertDialog(
-            onDismissRequest = { onClose() },
-            title = { Text("Share Task") },
-            text = {
-                Column {
-                    Text("Share this task with other users:")
-                    TextField(
-                        value = sharedUserInput,
-                        onValueChange = { sharedUserInput = it },
-                        label = { Text("Username") }
-                    )
-                    if (sharedUsers.isNotEmpty()) {
-                        Text("Shared with: ${sharedUsers.joinToString(", ")}")
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        sharedUsers = sharedUsers + sharedUserInput
-                        sharedUserInput = ""
-                    }
-                ) {
-                    Text("Add User")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = {
-                        onClose()
-                    }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
