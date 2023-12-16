@@ -83,8 +83,13 @@ class TaskCategoryPageActivity : ComponentActivity() {
 
                             refreshTasks.invoke()
 
+                            var title = "Your $taskType tasks"
+                            if(taskType == "other tasks"){
+                                 title = "Other tasks"
+                            }
+
                             TaskCategoryPageContent(
-                                title = "Your $taskType Tasks",
+                                title = title,
                                 tasksState,
                                 username,
                                 taskType
@@ -140,7 +145,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Yellow)
+                    .background(Color(0xFFADD8E6))
             ) {
                 Text(
                     text = title,
@@ -151,7 +156,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Yellow),
+                    .background(Color(0xFFADD8E6)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
