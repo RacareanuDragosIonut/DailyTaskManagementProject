@@ -165,6 +165,11 @@ class TaskCategoryPageActivity : ComponentActivity() {
                     Column(
                         verticalArrangement = Arrangement.Center
                     ) {
+                        Text(
+                            text = "Add Task",
+                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black),
+                            modifier = Modifier.padding(4.dp)
+                        )
                         IconButton(
                             onClick = {
                                 val intent = Intent(
@@ -174,7 +179,8 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                 intent.putExtra("username", username)
                                 intent.putExtra("taskType", taskType)
                                 startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
-                            }
+                            },
+                            modifier = Modifier.padding(4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
