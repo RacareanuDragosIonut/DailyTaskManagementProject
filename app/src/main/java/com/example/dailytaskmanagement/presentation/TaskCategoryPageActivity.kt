@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dailytaskmanagement.R
@@ -145,11 +146,15 @@ class TaskCategoryPageActivity : ComponentActivity() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFADD8E6))
+                    .background(Color(0xFFADD8E6)),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = title,
-                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+                    modifier = Modifier
+                        .padding(16.dp)
                 )
             }
 
