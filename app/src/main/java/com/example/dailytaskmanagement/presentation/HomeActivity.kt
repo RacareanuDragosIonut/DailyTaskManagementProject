@@ -61,7 +61,7 @@ class HomeActivity : ComponentActivity() {
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color.LightGray
                 ) {
                     val navController = rememberNavController()
 
