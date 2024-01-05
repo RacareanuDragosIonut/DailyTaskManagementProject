@@ -186,9 +186,20 @@ fun HomeScreen(username: String?, navController: NavController) {
                             HomeButton("OTHER TASKS", Icons.Default.Person,
                                 openTaskCategoryPage(username = username.orEmpty(),taskType = "other tasks"))
                         }
+                        item {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                        item {
+                            HomeButton("ANALYTICS", painterResource(id = R.drawable.baseline_analytics_24),
+                                openAnalytics(username = username.orEmpty()))
+                        }
                     }
                 )
+
+
+
             }
+
         }
     }
 }
@@ -277,4 +288,16 @@ private fun openTaskCategoryPage(username: String, taskType: String): () -> Unit
         context.startActivity(intent)
     }
 }
+
+@Composable
+private fun openAnalytics(username: String): () -> Unit {
+    val context = LocalContext.current
+    return {
+        val intent = Intent(context, AnalyticsActivity::class.java)
+        intent.putExtra("username", username)
+        context.startActivity(intent)
+    }
+}
+
+
 

@@ -465,6 +465,7 @@ class TaskCategoryPageActivity : ComponentActivity() {
                                     EditTaskFormActivity::class.java
                                 )
                                 intent.putExtra("task", task)
+
                                 intent.putExtra("username", task.owner)
                                 intent.putExtra("taskType", task.type)
                                 startActivityForResult(intent, ADD_TASK_REQUEST_CODE)
@@ -509,7 +510,6 @@ class TaskCategoryPageActivity : ComponentActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == ADD_TASK_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             Log.d("TaskCategoryPage", "Task added/updated successfully")
             refreshTasks.invoke()

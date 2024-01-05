@@ -150,7 +150,7 @@ fun AddTaskForm(onSubmit: (String, String, String, String) -> Unit, onClose: () 
 
             }
         }
-        // Description
+
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -194,7 +194,9 @@ fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (Stri
 
     val calendar = Calendar.getInstance()
     year = calendar.get(Calendar.YEAR)
-    month = calendar.get(Calendar.MONTH)
+
+    month = calendar.get(Calendar.MONTH) + 1
+
     day = calendar.get(Calendar.DAY_OF_MONTH)
     calendar.time = Date()
 
@@ -202,9 +204,9 @@ fun showDatePicker(context: Context, selectedDate: String, onDateSelected: (Stri
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            date.value = "$dayOfMonth/$month/$year"
+            date.value = "$dayOfMonth/${month + 1}/$year"
             onDateSelected(date.value)
-        }, year, month, day
+        }, year, month - 1, day
     )
     date.value = selectedDate
     Text(text = "Selected Date: ${date.value}")
@@ -227,7 +229,8 @@ private fun addTaskToFirebase(username: String?, taskName: String, dueDate: Stri
             dueDate = dueDate,
             priority = priority,
             description = description,
-            type = type
+            type = type,
+            completedDate = ""
 
         )
     }

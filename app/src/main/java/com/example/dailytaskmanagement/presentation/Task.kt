@@ -10,7 +10,8 @@ data class Task(
     val status: String? = "",
     val type: String? = "",
     val dueDate: String? = "",
-    var sharedUsers: List<String> ? = emptyList()
+    var sharedUsers: List<String>? = emptyList(),
+    val completedDate: String? = ""
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString(),
@@ -21,7 +22,8 @@ data class Task(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.createStringArrayList() ?: emptyList()
+        parcel.createStringArrayList() ?: emptyList(),
+        parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -34,6 +36,7 @@ data class Task(
         parcel.writeString(type)
         parcel.writeString(dueDate)
         parcel.writeStringList(sharedUsers)
+        parcel.writeString(completedDate)
     }
 
     override fun describeContents(): Int {

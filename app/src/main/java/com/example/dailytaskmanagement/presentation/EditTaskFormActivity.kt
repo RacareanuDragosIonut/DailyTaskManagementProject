@@ -20,6 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.dailytaskmanagement.ui.theme.DailyTaskManagementTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.*
 
 class EditTaskFormActivity : ComponentActivity() {
@@ -96,7 +100,7 @@ fun EditTaskForm(
     }
     var status by remember {
         mutableStateOf(
-            task?.priority
+            task?.status
                 ?.takeIf { status -> statusOptions.contains(status) }
                 ?: statusOptions.first()
         )
@@ -241,8 +245,8 @@ fun EditTaskForm(
                         description = description,
                         owner = username.orEmpty(),
                         type = taskType.orEmpty(),
-                        sharedUsers = task?.sharedUsers
-
+                        sharedUsers = task?.sharedUsers,
+                        completedDate = task?.completedDate
                     )
 
                     onUpdate(updatedTask)
@@ -279,7 +283,9 @@ fun showDatePickerEdit(context: Context, selectedDate: String, onDateSelected: (
 
     val calendar = Calendar.getInstance()
     year = calendar.get(Calendar.YEAR)
-    month = calendar.get(Calendar.MONTH)
+
+    month = calendar.get(Calendar.MONTH) + 1
+
     day = calendar.get(Calendar.DAY_OF_MONTH)
     calendar.time = Date()
 
@@ -287,9 +293,9 @@ fun showDatePickerEdit(context: Context, selectedDate: String, onDateSelected: (
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            date.value = "$dayOfMonth/$month/$year"
+            date.value = "$dayOfMonth/${month + 1}/$year"
             onDateSelected(date.value)
-        }, year, month, day
+        }, year, month - 1, day
     )
     date.value = selectedDate
     Text(text = "Selected Date: ${date.value}")
